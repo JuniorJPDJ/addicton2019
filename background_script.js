@@ -8,14 +8,14 @@ async function getDb(){
   return t;
 }
 
-function setDb(array){
-  browser.storage.local.set({"db": JSON.stringify(array)});
+async function setDb(array){
+  await browser.storage.local.set({"db": JSON.stringify(array)});
 }
 
 async function addToDb(obj){
   let entries = await getDb();
   entries.push(obj);
-  setDb(entries);
+  await setDb(entries);
 }
 
 browser.tabs.onUpdated.addListener(async (tabId) => {
@@ -55,13 +55,13 @@ async function tabActivated(window, tab){
 // todo tab close
 
 async function pageActivated(url){
-  let lastUrlStartTime = browser.storage.local.get("lastUrlStartTime").lastUrlStartTime;
-  let time = Math.floor((+new Date())/1000);
-  if(time == lastUrlStartTime) return;
+  let lastUrlStartTime = (await browser.storage.local.get("lastUrlStartTime")).lastUrlStartTime;
+  let time = +new Date()/1000;
+  if((time - lastUrlStartTime) < 1) return;
 
   await pageDeactivated();
-  browser.storage.local.set({"lastUrl": url});
-  browser.storage.local.set({"lastUrlStartTime": time});
+  await browser.storage.local.set({"lastUrl": url});
+  await browser.storage.local.set({"lastUrlStartTime": time});
   console.log("Page activated:", url);
 }
 
@@ -72,13 +72,13 @@ async function pageDeactivated(url){
   [lastUrl, lastUrlStartTime] = [lastUrl.lastUrl, lastUrlStartTime.lastUrlStartTime];
   if(url != lastUrl || !lastUrl) return;
 
-  let urlTime = Math.floor(+new Date()/1000) - lastUrlStartTime;
+  let urlTime = +new Date()/1000 - lastUrlStartTime;
   
-  if(!urlTime) return;
+  if(urlTime < 1) return;
   console.log("Page deactivated:", url);
   console.log("Page was active for:", urlTime);
   
-  browser.storage.local.set({"lastUrl": ""});
+  await browser.storage.local.set({"lastUrl": ""});
   
-  addToDb([url, +lastUrlStartTime, urlTime]);
+  addToDb([url, Math.floor(+lastUrlStartTime), Math.floor(urlTime)]);
 }
