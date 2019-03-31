@@ -160,9 +160,10 @@ function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+const checkInterval = 10*60;
+const triggerTime = 2*60;
+
 (async function(){
-  const checkInterval = 10*60;
-  const triggerTime = 2*60;
 
   setInterval(async () => {
     let time = await spentTime(10*60, genUrlDomainRegexp((await getActiveTab()).url));
@@ -177,3 +178,9 @@ function escapeRegExp(string) {
   }, 5000);
 })();
 
+async function onRuntimeMessage(message, sender, sendResponse){
+  if(message.message == "timeAnalisis")
+    sendResponse({response: await analyzeTime(checkInterval)});
+}
+
+browser.runtime.onMessage.addListener(onRuntimeMessage);
