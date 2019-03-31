@@ -47,12 +47,11 @@ browser.tabs.onActivated.addListener(async (tabInfo) => {
 });
 
 async function tabActivated(window, tab){
+  await browser.storage.local.set({"lastTab": tab.id});
   if(window.focused && tab.active){
    await pageActivated(tab.url);
   }
 }
-
-// todo tab close
 
 async function pageActivated(url){
   let lastUrlStartTime = (await browser.storage.local.get("lastUrlStartTime")).lastUrlStartTime;
