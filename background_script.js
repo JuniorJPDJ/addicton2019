@@ -4,9 +4,11 @@ browser.runtime.onMessage.addListener(async (message) => {
         await browser.tabs.executeScript({file: "/content_scripts/content_script.js"});
         let activeTab = await browser.tabs.query({active: true});
         console.log(activeTab[0].id);
+        let etime = await spentTime(24*60*60, genUrlDomainRegexp(activeTab[0].url)); 
         browser.tabs.sendMessage( activeTab[0].id, {
             command: "popup",
             num: "1",
+            stime: etime,
         });
     }
 });

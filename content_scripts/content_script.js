@@ -1,6 +1,5 @@
 // Put all the javascript code here, that you want to execute after page load.
 (function() {
-console.log('content script!!!');
 
 const texts = [
 "czy na pewno nie masz czegoś do zrobienia?",
@@ -14,21 +13,28 @@ const images = [
 "static/outdoor.jpg"
 ];
 
-function insertPopup(num) {
-    console.log('insert!!!');
+function insertPopup(num, stime) {
+    let h = Math.floor(stime / 3600);
+    let m = Math.floor(stime / 60 - h*3600);
     let popupContainer = document.createElement("div");
     popupContainer.setAttribute('id', 'persistence-popup');
     popupContainer.style.position = 'fixed';
     popupContainer.style.zIndex = '99999';
     popupContainer.style.width = '500px';
-    popupContainer.style.height = '280px';
+    popupContainer.style.height = '300px';
     popupContainer.style.padding = '10px';
     popupContainer.style.textAlign = 'center';
     popupContainer.style.border = '1px solid';
     popupContainer.style.left = 'calc(50% - 250px)';
     popupContainer.style.top = '50px';
     popupContainer.style.backgroundColor = 'white';
-    popupContainer.append(texts[num]);
+    let textContainer = document.createElement("p");
+    textContainer.append("Spędziłeś/aś tu ");
+    if(h != 0) {
+      textContainer.append(h+" godzin i ");
+    }
+    textContainer.append(m+" minut, "+texts[num]);
+    popupContainer.appendChild(textContainer);
     popupImage = document.createElement("img");
     popupImage.setAttribute('src', browser.extension.getURL(images[num]));
     popupImage.style.width = '320px';
@@ -44,10 +50,8 @@ function removePopup() {
 
 browser.runtime.onMessage.addListener((message) => {
     if (message.command === "popup") {
-        console.log('message: popup!!');
-        insertPopup(message.num);
+        insertPopup(message.num, message.stime);
     } else if (message.command === "hide-popup") {
-        console.log('message: hide-popup');
         removePopup();
     }
 });
