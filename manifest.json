@@ -14,10 +14,11 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.mozilla.org/*"
+        "*://*.mozilla.org/*",
+        "<all_urls>"
       ],
       "js": [
-        "content_script.js"
+        "content_scripts/content_script.js"
       ]
     }
   ],

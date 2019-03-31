@@ -1,26 +1,9 @@
 let it = "go";
 
-(function() {
-browser.runtime.onMessage.addListener(async (message) => {
-    if (message.command === "popup") {
-        await browser.tabs.executeScript({file: "/content_scripts/content_script.js"});
-        let activeTab = await browser.tabs.query({active: true});
-        console.log(activeTab[0].id);
-        let etime = await spentTime(24*60*60, genUrlDomainRegexp(activeTab[0].url)); 
-        browser.tabs.sendMessage( activeTab[0].id, {
-            command: "popup",
-            num: "1",
-            stime: etime,
-        });
-    }
-});
-})();
-
 async function doPopup(num, etime){
-    await browser.tabs.executeScript({file: "/content_scripts/content_script.js"});
-    let activeTab = await browser.tabs.query({active: true});
+    let activeTab = await getActiveTab();
 
-    browser.tabs.sendMessage( activeTab[0].id, {
+    browser.tabs.sendMessage( activeTab.id, {
         command: "popup",
         num: num,
         stime: etime,
