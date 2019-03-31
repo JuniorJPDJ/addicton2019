@@ -1,3 +1,5 @@
+let it = "go";
+
 (function() {
 browser.runtime.onMessage.addListener(async (message) => {
     if (message.command === "popup") {
@@ -123,8 +125,16 @@ async function timeOnActiveTab(){
   return Math.floor((+new Date()/1000) - lastUrlStartTime);
 }
 
+function getDomain(url){
+  return url.match(/.*?:\/\/(.*?)\/.*/)[1];
+}
+
+function genDomainRegexp(domain){
+  return ".*?:\/\/"+escapeRegExp(domain)+"\/.*";
+}
+
 function genUrlDomainRegexp(url){
-  return ".*?:\/\/"+escapeRegExp(url.match(/.*?:\/\/(.*?)\/.*/)[1])+"\/.*";
+  return genDomainRegexp(getDomain(url));
 }
 
 async function spentTime(checkInterval, urlRegexp){
@@ -146,15 +156,41 @@ async function spentTime(checkInterval, urlRegexp){
   return time;
 }
 
+async function analyzeTime(checkInterval){
+  let spentTimes = {};
+  let db = await getDb();
+  let currentTimestamp = +new Date()/1000;
+  let currentEl = db.length-1;
+  while(currentEl >= 0 && ((db[currentEl][1] + db[currentEl][2]) > (currentTimestamp - checkInterval))){
+    try {
+      let domain = getDomain(db[currentEl][0]);
+      if(!spentTimes.hasOwnProperty(domain)){
+        spentTimes[domain] = await spentTime(checkInterval, genDomainRegexp(domain));
+    }
+    } catch(e) {}
+    currentEl--;
+  }
+  return spentTimes;
+}
+
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 (async function(){
+  const checkInterval = 10*60;
+  const triggerTime = 2*60;
+
   setInterval(async () => {
+    let time = await spentTime(10*60, genUrlDomainRegexp((await getActiveTab()).url));
+    console.log(await analyzeTime(checkInterval));
     console.log("Time on active tab:", await timeOnActiveTab());
     console.log("Time on stackoverflow in past 10 minutes:", await spentTime(10*60, ".*?://stackoverflow\.com/.*"));
-    console.log("Time on active page in past 10 minutes:", await spentTime(10*60, genUrlDomainRegexp((await getActiveTab()).url)));
+    console.log("Time on active page in past 10 minutes:", time);
+    if(time > triggerTime){
+      let textId = Math.floor(Math.random()*99999999)%3;
+      doPopup(textId, time);
+    }
   }, 5000);
 })();
 
