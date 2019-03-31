@@ -3,9 +3,28 @@
   <head>
     <meta charset="UTF-8">
     <link href="style.css" rel="stylesheet" />
+    <style>
+        div {
+            margin-bottom: 1em;
+        }
+        body {
+            padding: 0.5em;
+        }
+    </style>
   </head>
   <body>
-    <h1 id="myHeading">My content</h1>
+    <p>persistence demo</p>
+    <div class="domain-list">
+        <input type="text"><br>
+        <select>
+            <option value="blacklist">Blacklist</option>
+            <option value="whitelist">Whitelist</option>
+          </select> 
+        <button class='add-to-list'>Add</button>
+    </div>
+    <div class="menu">
+        <button class='statistics'>Statistics</button>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>
