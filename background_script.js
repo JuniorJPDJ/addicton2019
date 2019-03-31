@@ -81,3 +81,56 @@ async function pageDeactivated(url){
   
   addToDb([url, Math.floor(+lastUrlStartTime), Math.floor(urlTime)]);
 }
+
+async function getActiveTab(){
+  let currentWindow = await browser.windows.getCurrent();
+  let currentTab = await browser.tabs.query({"active": true, "windowId": currentWindow.id});
+  return currentTab;
+}
+
+async function timeOnActiveTab(){ 
+  let [lastUrl, lastUrlStartTime] = await Promise.all([browser.storage.local.get("lastUrl"), browser.storage.local.get("lastUrlStartTime")]); 
+  [lastUrl, lastUrlStartTime] = [lastUrl.lastUrl, lastUrlStartTime.lastUrlStartTime];
+  let currentTab = await getActiveTab();
+  console.log(currentTab.url, lastUrl);
+  if(currentTab.url != lastUrl) return 0;
+  return Math.floor((+new Date()/1000) - lastUrlStartTime);
+}
+
+function genUrlDomainRegexp(url){
+  return ".*?:\/\/"+escapeRegExp(url.match(/.*?:\/\/(.*?)\/.*/)[1])+"\/.*";
+}
+
+async function spentTime(checkInterval, urlRegexp){
+  let currentTab = await getActiveTab();
+  let currentTimestamp = +new Date()/1000;
+  let time = 0;
+  let regexp = new RegExp(urlRegexp);
+  if(regexp.test(currentTab.url)) time += timeOnActiveTab();
+
+  let db = await getDb();
+  let currentEl = db.length-1;
+  // [url, startTimestamp, timeInterval]
+  while(currentEl >= 0 && ((db[currentEl][1] + db[currentEl][2]) > (currentTimestamp - checkInterval))){
+    if(regexp.test(db[currentEl][0])){
+      time += db[currentEl][2];
+    }
+    currentEl--;
+  }
+  return time;
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+async function main(){
+  browser.tabs.onUpdated.removeListener(main);
+  setInterval(async () => {
+    console.log("Time on active tab:", await timeOnActiveTab());
+    console.log("Time on facebook:", await spentTime(10*60, ".*?://stackoverflow\.com/.*"));
+  }, 5000);
+}
+
+browser.tabs.onUpdated.addListener(main);
+main();
