@@ -98,7 +98,8 @@ async function pageDeactivated(url){
 
 async function getActiveTab(){
   let currentWindow = await browser.windows.getCurrent();
-  let currentTab = await browser.tabs.query({"active": true, "windowId": currentWindow.id});
+  let currentTab = (await browser.tabs.query({"active": true, "windowId": currentWindow.id}))[0];
+  console.log(currentTab);
   return currentTab;
 }
 
@@ -120,7 +121,7 @@ async function spentTime(checkInterval, urlRegexp){
   let currentTimestamp = +new Date()/1000;
   let time = 0;
   let regexp = new RegExp(urlRegexp);
-  if(regexp.test(currentTab.url)) time += timeOnActiveTab();
+  if(regexp.test(currentTab.url)) time += await timeOnActiveTab();
 
   let db = await getDb();
   let currentEl = db.length-1;
@@ -138,13 +139,10 @@ function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-async function main(){
-  browser.tabs.onUpdated.removeListener(main);
+(async function(){
   setInterval(async () => {
     console.log("Time on active tab:", await timeOnActiveTab());
     console.log("Time on stackoverflow:", await spentTime(10*60, ".*?://stackoverflow\.com/.*"));
   }, 5000);
-}
+})();
 
-browser.tabs.onUpdated.addListener(main);
-main();
