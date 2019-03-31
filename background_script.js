@@ -1,9 +1,4 @@
-
-// Put all the javascript code here, that you want to execute in background.
-console.log('ASDF5555555');
 (function() {
-console.log('ASDF!!!!!');
-
 browser.runtime.onMessage.addListener(async (message) => {
     if (message.command === "popup") {
         await browser.tabs.executeScript({file: "/content_scripts/content_script.js"});
@@ -140,14 +135,14 @@ async function spentTime(checkInterval, urlRegexp){
 }
 
 function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 async function main(){
   browser.tabs.onUpdated.removeListener(main);
   setInterval(async () => {
     console.log("Time on active tab:", await timeOnActiveTab());
-    console.log("Time on facebook:", await spentTime(10*60, ".*?://stackoverflow\.com/.*"));
+    console.log("Time on stackoverflow:", await spentTime(10*60, ".*?://stackoverflow\.com/.*"));
   }, 5000);
 }
 
