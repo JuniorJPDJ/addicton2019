@@ -140,7 +140,8 @@ function escapeRegExp(string) {
 (async function(){
   setInterval(async () => {
     console.log("Time on active tab:", await timeOnActiveTab());
-    console.log("Time on stackoverflow:", await spentTime(10*60, ".*?://stackoverflow\.com/.*"));
+    console.log("Time on stackoverflow in past 10 minutes:", await spentTime(10*60, ".*?://stackoverflow\.com/.*"));
+    console.log("Time on active page in past 10 minutes:", await spentTime(10*60, genUrlDomainRegexp((await getActiveTab()).url)));
   }, 5000);
 })();
 
