@@ -99,7 +99,6 @@ async function pageDeactivated(url){
 async function getActiveTab(){
   let currentWindow = await browser.windows.getCurrent();
   let currentTab = (await browser.tabs.query({"active": true, "windowId": currentWindow.id}))[0];
-  console.log(currentTab);
   return currentTab;
 }
 
@@ -107,7 +106,6 @@ async function timeOnActiveTab(){
   let [lastUrl, lastUrlStartTime] = await Promise.all([browser.storage.local.get("lastUrl"), browser.storage.local.get("lastUrlStartTime")]); 
   [lastUrl, lastUrlStartTime] = [lastUrl.lastUrl, lastUrlStartTime.lastUrlStartTime];
   let currentTab = await getActiveTab();
-  console.log(currentTab.url, lastUrl);
   if(currentTab.url != lastUrl) return 0;
   return Math.floor((+new Date()/1000) - lastUrlStartTime);
 }
