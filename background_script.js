@@ -14,6 +14,17 @@ browser.runtime.onMessage.addListener(async (message) => {
 });
 })();
 
+async function doPopup(num, etime){
+    await browser.tabs.executeScript({file: "/content_scripts/content_script.js"});
+    let activeTab = await browser.tabs.query({active: true});
+
+    browser.tabs.sendMessage( activeTab[0].id, {
+        command: "popup",
+        num: num,
+        stime: etime,
+    });
+}
+
 async function getDb(){
   let t;
   try {
